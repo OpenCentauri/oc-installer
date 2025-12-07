@@ -1,0 +1,26 @@
+name: Build installer zip
+
+on:
+  workflow_call:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Package installer
+        run: |
+          wget -O install_opencentauri/decrypt https://github.com/OpenCentauri/OpenCentauri/releases/download/v0.0.0/decrypt
+          wget -O install_opencentauri/recovery https://github.com/OpenCentauri/OpenCentauri/releases/download/v0.0.0/recovery
+          zip -r oc-installer.zip install_opencentauri
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer
+          path: oc-installer.zip

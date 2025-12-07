@@ -1,0 +1,87 @@
+window_title = "OpenCentauri installer"
+
+[display.framebuffer]
+fb_path = "/dev/fb0"
+event_path = "/dev/input/event1"
+
+[scripts."Install OpenCentauri (Online)"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-oc.sh"] },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-oc.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 0
+
+[scripts."Install OpenCentauri (Local)"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-oc-local.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 1
+
+[scripts."Check boot slot"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+]
+index = 2
+
+[scripts."Install Official 1.1.46 (Online)"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-1.1.46.sh"] },
+    { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
+    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 3
+
+[scripts."Install Official 1.1.40 (Online)"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-1.1.40.sh"] },
+    { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
+    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 4
+
+[scripts."Install Official 1.1.25 (Online)"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-1.1.25.sh"] },
+    { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
+    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 5
+
+[scripts."Install Official (Local)"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware-local.sh"], show_stdout = true },
+    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 6
+
+[scripts."Reboot"]
+tasks = [{name = "Reboot", command = ["/bin/sh", "-c", "reboot"]}]
+index = 7
