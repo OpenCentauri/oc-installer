@@ -48,7 +48,7 @@ jobs:
           name: ${{ github.event.inputs.version || github.ref_name }}
           draft: ${{ github.event.inputs.draft || false }}
           prerelease: false
-          generate_release_notes: true
+          generate_release_notes: false
           files: artifacts/**/*
 
       - name: Attest Release
