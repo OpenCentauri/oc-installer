@@ -36,7 +36,6 @@ tasks = [
     { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
     { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-1.1.46.sh"] },
     { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
-    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
     { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
 ]
 completed_actions = [
@@ -49,7 +48,6 @@ tasks = [
     { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
     { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-1.1.40.sh"] },
     { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
-    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
     { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
 ]
 completed_actions = [
@@ -62,7 +60,6 @@ tasks = [
     { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
     { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-1.1.25.sh"] },
     { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
-    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
     { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
 ]
 completed_actions = [
@@ -74,7 +71,6 @@ index = 5
 tasks = [
     { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
     { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware-local.sh"], show_stdout = true },
-    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
     { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
 ]
 completed_actions = [
@@ -85,3 +81,7 @@ index = 6
 [scripts."Reboot"]
 tasks = [{name = "Reboot", command = ["/bin/sh", "-c", "reboot"]}]
 index = 7
+
+[scripts."Remove Remnants of OpenCentauri"]
+tasks = [{name = "Delete OpenCentauri folder", command = ["rm", "-rf", "/user-resource/OpenCentauri"]}]
+index = 8
