@@ -18,6 +18,7 @@ index = 0
 [scripts."Install OpenCentauri (Local)"]
 tasks = [
     { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Preserve WiFi credentials", command = ["/bin/sh", "/user-resource/update_tmp/extract-wifi.sh"], show_stdout = true  },
     { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-oc-local.sh"] },
 ]
 completed_actions = [

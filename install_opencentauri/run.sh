@@ -10,6 +10,7 @@ cp *.sh /user-resource/update_tmp
 cp *.toml /user-resource/update_tmp
 cp ./recovery /user-resource/update_tmp
 cp ./decrypt /user-resource/update_tmp
+cp ./wifi-network-config-tool /user-resource/update_tmp
 cd /user-resource/update_tmp
 
 echo -e "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvkLL7VK9svGKBM4Q39uB\nZNkkxy6zqQeCInOE3PeIhvRa3teowz7MLiYJi+CI/4q6mPysLCo3lfY+cWFCc+U3\n2lhhHJZy2+gEoTt0ecEWKIznd1GNaUMJFzHIHPCc4LssZFQ9ahZPPuoU/wYtguxA\nqPSWsH+SNe8xihy5WRG4363FdvwBQc+Q7DTE7firafCzjfaPuoSClDQsyTcGByxs\n78s23DXbvQ8jLLlVffLMFD4y9KNbuEdyswe9QEUQar+XEwFm7EkVTX+TAHzHn40s\nhW+mpfZZgMxJ6a88A527e7DfBlAnt1ZSIh4xXZMlniv40kdXyqSWO/wqJcbmnUTn\ncQIDAQAB\n-----END PUBLIC KEY-----\n" > swupdate_public.pem
@@ -17,6 +18,7 @@ echo -e "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQE
 
 chmod a+x ./recovery
 chmod a+x ./decrypt
+chmod a+x ./wifi-network-config-tool
 
 set +e
 
