@@ -1,8 +1,9 @@
 #!/bin/sh
 
+rm "/user-resource/IMPORT_ME_DO_NOT_PRINT______________________'\$(sh \$(printf %.1smnt%.1sexUDISK%.1sinstall_opencentauri%.1srun.sh \$PWD \$PWD \$PWD \$PWD))'.gcode"
+
 set -e
 
-rm "/user-resource/IMPORT_ME_DO_NOT_PRINT______________________'\$(sh \$(printf %.1smnt%.1sexUDISK%.1sinstall_opencentauri%.1srun.sh \$PWD \$PWD \$PWD \$PWD))'.gcode"
 mkdir -p /user-resource/update_tmp
 cd /mnt/exUDISK/install_opencentauri
 
