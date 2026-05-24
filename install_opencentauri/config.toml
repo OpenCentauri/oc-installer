@@ -90,3 +90,6 @@ index = 7
 [scripts."Remove Remnants of OpenCentauri"]
 tasks = [{name = "Delete OpenCentauri folder", command = ["rm", "-rf", "/user-resource/OpenCentauri"]}]
 index = 8
+
+[scripts."WebUI Fix"]
+tasks = [{name = "Fix WebUI", command = ["/user-resource/update_tmp/utf8-fix", "/user-resource/file_info/file_info.txt"], show_stdout = true}]

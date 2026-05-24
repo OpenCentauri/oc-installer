@@ -11,6 +11,7 @@ cp *.sh /user-resource/update_tmp
 cp *.toml /user-resource/update_tmp
 cp ./recovery /user-resource/update_tmp
 cp ./decrypt /user-resource/update_tmp
+cp ./utf8-fix /user-resource/update_tmp
 cp ./wifi-network-config-tool /user-resource/update_tmp
 cd /user-resource/update_tmp
 
@@ -20,6 +21,7 @@ echo -e "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQE
 chmod a+x ./recovery
 chmod a+x ./decrypt
 chmod a+x ./wifi-network-config-tool
+chmod a+x ./utf8-fix
 
 set +e
 
