@@ -15,22 +15,34 @@ completed_actions = [
 ]
 index = 0
 
-[scripts."Install OpenCentauri (Local)"]
+[scripts."Install COSMOS (Online)"]
 tasks = [
     { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
-    { name = "Preserve WiFi credentials", command = ["/bin/sh", "/user-resource/update_tmp/extract-wifi.sh"], show_stdout = true  },
-    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-oc-local.sh"] },
+    { name = "Preserve WiFi credentials", command = ["/bin/sh", "/user-resource/update_tmp/extract-wifi.sh"], show_stdout = true, stop_on_failure = false },
+    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-cosmos.sh"] },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-oc.sh"] },
 ]
 completed_actions = [
     { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
 ]
 index = 1
 
+[scripts."Install OpenCentauri (Local)"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Preserve WiFi credentials", command = ["/bin/sh", "/user-resource/update_tmp/extract-wifi.sh"], show_stdout = true, stop_on_failure = false },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-oc-local.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 2
+
 [scripts."Check boot slot"]
 tasks = [
     { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
 ]
-index = 2
+index = 3
 
 [scripts."Install Official 1.1.46 (Online)"]
 tasks = [
@@ -43,7 +55,7 @@ tasks = [
 completed_actions = [
     { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
 ]
-index = 3
+index = 4
 
 [scripts."Install Official 1.1.40 (Online)"]
 tasks = [
@@ -56,7 +68,7 @@ tasks = [
 completed_actions = [
     { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
 ]
-index = 4
+index = 5
 
 [scripts."Install Official 1.1.25 (Online)"]
 tasks = [
@@ -69,7 +81,7 @@ tasks = [
 completed_actions = [
     { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
 ]
-index = 5
+index = 6
 
 [scripts."Install Official (Local)"]
 tasks = [
@@ -81,15 +93,16 @@ tasks = [
 completed_actions = [
     { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
 ]
-index = 6
+index = 7
 
 [scripts."Reboot"]
 tasks = [{name = "Reboot", command = ["/bin/sh", "-c", "reboot"]}]
-index = 7
+index = 8
 
 [scripts."Remove Remnants of OpenCentauri"]
 tasks = [{name = "Delete OpenCentauri folder", command = ["rm", "-rf", "/user-resource/OpenCentauri"]}]
-index = 8
+index = 9
 
 [scripts."WebUI Fix"]
 tasks = [{name = "Fix WebUI", command = ["/user-resource/update_tmp/utf8-fix", "/user-resource/file_info/file_info.txt"], show_stdout = true}]
+index = 10

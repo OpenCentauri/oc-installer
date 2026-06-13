@@ -4,7 +4,7 @@ set -e
 
 wlan_conf="/board-resource/wlan_entery"
 wlan_conf_str="/tmp/wlan_entery_str"
-wpa_conf="/user-resource/wpa_supplicant.conf"
+wpa_conf="/mnt/exUDISK/wpa_supplicant.conf"
 
 # Extract WiFi credentials from Elegoo's proprietary format
 echo "Extracting WiFi credentials..."
@@ -30,6 +30,7 @@ echo "Generating wpa_supplicant.conf for SSID: $ssid"
 mkdir -p "$(dirname "$wpa_conf")"
 
 cat > "$wpa_conf" <<EOF
+ctrl_interface=/var/run/wpa_supplicant
 network={
     ssid="$ssid"
     psk="$psk"
@@ -37,5 +38,3 @@ network={
 EOF
 
 echo "wpa_supplicant.conf written to $wpa_conf"
-
-
