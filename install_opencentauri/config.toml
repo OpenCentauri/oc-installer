@@ -4,10 +4,10 @@ window_title = "OpenCentauri installer"
 fb_path = "/dev/fb0"
 event_path = "/dev/input/event1"
 
-[scripts."Install OpenCentauri (Online)"]
+[submenus."Install OpenCentauri"."Install Patched (Online)"]
 tasks = [
     { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
-    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-oc.sh"] },
+    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-firmware.sh", "patched"] },
     { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-oc.sh"] },
 ]
 completed_actions = [
@@ -15,11 +15,11 @@ completed_actions = [
 ]
 index = 0
 
-[scripts."Install COSMOS (Online)"]
+[submenus."Install OpenCentauri"."Install COSMOS (Online)"]
 tasks = [
     { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
     { name = "Preserve WiFi credentials", command = ["/bin/sh", "/user-resource/update_tmp/extract-wifi.sh"], show_stdout = true, stop_on_failure = false },
-    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-cosmos.sh"] },
+    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-firmware.sh", "cosmos"] },
     { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-oc.sh"] },
 ]
 completed_actions = [
@@ -27,7 +27,7 @@ completed_actions = [
 ]
 index = 1
 
-[scripts."Install OpenCentauri (Local)"]
+[submenus."Install OpenCentauri"."Install OpenCentauri From USB"]
 tasks = [
     { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
     { name = "Preserve WiFi credentials", command = ["/bin/sh", "/user-resource/update_tmp/extract-wifi.sh"], show_stdout = true, stop_on_failure = false },
@@ -38,52 +38,59 @@ completed_actions = [
 ]
 index = 2
 
-[scripts."Check boot slot"]
+[submenus."Install Official"."Install 1.4.46 (Online)"]
 tasks = [
     { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-firmware.sh", "1.4.46"] },
+    { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
+    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 0
+
+[submenus."Install Official"."Install 1.1.46 (Online)"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-firmware.sh", "1.1.46"] },
+    { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
+    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 1
+
+[submenus."Install Official"."Install 1.1.40 (Online)"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-firmware.sh", "1.1.40"] },
+    { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
+    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 2
+
+[submenus."Install Official"."Install 1.1.25 (Online)"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-firmware.sh", "1.1.25"] },
+    { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
+    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
 ]
 index = 3
 
-[scripts."Install Official 1.1.46 (Online)"]
-tasks = [
-    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
-    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-1.1.46.sh"] },
-    { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
-    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
-    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
-]
-completed_actions = [
-    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
-]
-index = 4
-
-[scripts."Install Official 1.1.40 (Online)"]
-tasks = [
-    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
-    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-1.1.40.sh"] },
-    { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
-    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
-    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
-]
-completed_actions = [
-    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
-]
-index = 5
-
-[scripts."Install Official 1.1.25 (Online)"]
-tasks = [
-    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
-    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-1.1.25.sh"] },
-    { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware.sh"] },
-    { name = "Uninstall OpenCentauri", command = ["/bin/sh", "/user-resource/update_tmp/uninstall-oc.sh"], show_stdout = true },
-    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-official.sh"] },
-]
-completed_actions = [
-    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
-]
-index = 6
-
-[scripts."Install Official (Local)"]
+[submenus."Install Official"."Install Official From USB"]
 tasks = [
     { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
     { name = "Decrypt firmware", command = ["/bin/sh", "/user-resource/update_tmp/decrypt-firmware-local.sh"], show_stdout = true },
@@ -93,16 +100,21 @@ tasks = [
 completed_actions = [
     { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
 ]
-index = 7
+index = 4
+
+[submenus."Utils"."Check boot slot"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+]
+index = 0
+
+[submenus."Utils"."Remove Remnants of OpenCentauri"]
+tasks = [{name = "Delete OpenCentauri folder", command = ["rm", "-rf", "/user-resource/OpenCentauri"]}]
+index = 1
+
+[submenus."Utils"."WebUI Fix"]
+tasks = [{name = "Fix WebUI", command = ["/user-resource/update_tmp/utf8-fix", "/user-resource/file_info/file_info.txt"], show_stdout = true}]
+index = 2
 
 [scripts."Reboot"]
 tasks = [{name = "Reboot", command = ["/bin/sh", "-c", "reboot"]}]
-index = 8
-
-[scripts."Remove Remnants of OpenCentauri"]
-tasks = [{name = "Delete OpenCentauri folder", command = ["rm", "-rf", "/user-resource/OpenCentauri"]}]
-index = 9
-
-[scripts."WebUI Fix"]
-tasks = [{name = "Fix WebUI", command = ["/user-resource/update_tmp/utf8-fix", "/user-resource/file_info/file_info.txt"], show_stdout = true}]
-index = 10
