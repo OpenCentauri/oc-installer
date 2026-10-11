@@ -1,0 +1,47 @@
+window_title = "OpenCentauri installer (C2/CC2)"
+
+[display.framebuffer]
+fb_path = "/dev/fb0"
+event_path = "/dev/input/event1"
+
+[submenus."Install COSMOS"."Install COSMOS (Online)"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Download firmware", command = ["/bin/sh", "/user-resource/update_tmp/download-firmware.sh", "cosmos"], show_stdout = true },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-cosmos.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 0
+
+[submenus."Install COSMOS"."Install COSMOS From USB"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+    { name = "Install firmware", command = ["/bin/sh", "/user-resource/update_tmp/install-cosmos-local.sh"] },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 1
+
+[submenus."Utils"."Check boot slot"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/user-resource/update_tmp/check-boot-slot.sh"], show_stdout = true },
+]
+index = 0
+
+[submenus."Utils"."Install root shell (port 4567)"]
+tasks = [
+    { name = "Install + start bind-shell", command = ["/bin/sh", "/user-resource/update_tmp/install-shell.sh"], show_stdout = true },
+]
+index = 1
+
+[submenus."Utils"."Backup eMMC to USB"]
+tasks = [
+    { name = "Backup eMMC (dd|gzip to USB)", command = ["/bin/sh", "/user-resource/update_tmp/backup-emmc.sh"], show_stdout = true },
+]
+index = 2
+
+[scripts."Exit and Reboot"]
+tasks = [{name = "Reboot", command = ["/bin/sh", "-c", "sync; reboot"]}]

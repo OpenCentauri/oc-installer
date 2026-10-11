@@ -26,3 +26,13 @@ jobs:
         with:
           name: installer
           path: oc-installer.zip
+
+      - name: Package C2/CC2 installer
+        run: |
+          ./build.sh
+          zip -r oc-installer-c2.zip install_c2 build/cc2_eeb001_installer_*.zip.sig build/c2_eeb001_installer_*.zip.sig
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-c2
+          path: oc-installer-c2.zip
