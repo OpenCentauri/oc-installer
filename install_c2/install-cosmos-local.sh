@@ -10,12 +10,9 @@ if [ -z "$SWU" ]; then
     echo "Copy a COSMOS .swu for this machine onto the stick first." >&2
     exit 1
 fi
-cd /user-resource/update_tmp
+cd "$(dirname "$0")"
 slot="$(sh ./check-boot-slot.sh)"
-# Probe for "cosmos =" section; degrades to "stable" if cpio is missing
-# (correct for stock SWUs; Cosmos rootfs ships cpio).
-cpio -i -F "$SWU" sw-description --to-stdout 2>/dev/null > /tmp/swd.txt || true
-if grep -qs "cosmos =" /tmp/swd.txt; then sel="cosmos"; else sel="stable"; fi
+if dd if="$SWU" bs=8192 count=1 2>/dev/null | grep -q "cosmos ="; then sel="cosmos"; else sel="stable"; fi
 KEY=""
 swupdate -h 2>&1 | grep -q -- '-k' && [ -f swupdate_public_cosmos.pem ] && KEY="-k swupdate_public_cosmos.pem"
 echo "Installing: selection=$sel,$slot from USB"

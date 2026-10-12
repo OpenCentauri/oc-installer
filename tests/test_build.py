@@ -90,7 +90,8 @@ def no_flash_guards():
     for rel in safe:
         with open(os.path.join(ROOT, rel)) as f:
             src = f.read()
-        check(f"{rel}: no fw_setenv", "fw_setenv" not in src)
+        src_nocancel = re.sub(r'fw_setenv (swu_next|parts_clean) ""', "", src)
+        check(f"{rel}: no fw_setenv besides swu-state cancels", "fw_setenv" not in src_nocancel)
         check(f"{rel}: no mmcblk writes", not re.search(r"of\s*=\s*[\"']?/dev/mmcblk", src))
     with open(os.path.join(ROOT, "tools", "sw-description.bootstrap")) as f:
         swd = f.read()
@@ -100,11 +101,11 @@ def no_flash_guards():
 
 
 def read_newc(blob):
-    """Parse cpio newc, return [(name, data)]."""
+    """Parse cpio newc/crc, return [(name, data)]."""
     out = []
     off = 0
     while True:
-        assert blob[off:off + 6] == b"070701", f"bad magic at {off}"
+        assert blob[off:off + 6] in (b"070701", b"070702"), f"bad magic at {off}"
         fields = [int(blob[off + 6 + i * 8: off + 14 + i * 8], 16) for i in range(13)]
         namesz, filesize = fields[11], fields[6]
         name = blob[off + 110: off + 110 + namesz - 1].decode()
@@ -161,6 +162,25 @@ def post_build():
     swd = dict(members)["sw-description"].decode()
     for m in re.finditer(r'filename\s*=\s*"([^"]+)"', swd):
         check(f"descriptor filename {m.group(1)} is a cpio member", m.group(1) in names)
+
+    # Embedded payload round-trip: bootstrap script carries install_c2/ as a
+    # raw tar.gz at the byte offset baked into its tail line.
+    boot = dict(members)["bootstrap-payload.sh"]
+    m = re.search(rb"tail -c \+(\d+) ", boot)
+    check("bootstrap has payload offset", m is not None)
+    if m:
+        import tarfile
+        with tarfile.open(fileobj=io.BytesIO(boot[int(m.group(1)) - 1:]), mode="r:gz") as tf:
+            members_t = set(tf.getnames())
+            check("payload has all runtime files",
+                  {"run.sh", "config.toml", "recovery", "bind-shell",
+                   "check-boot-slot.sh", "backup-emmc.sh", "install-shell.sh",
+                   "download-firmware.sh", "install-cosmos.sh",
+                   "install-cosmos-local.sh", "swupdate_public_cosmos.pem"} <= members_t,
+                  str(sorted(members_t)))
+            eh = tf.extractfile("recovery").read(20)
+            check("payload recovery is 32-bit ARM ELF",
+                  eh[:4] == b"\x7fELF" and struct.unpack("<H", eh[18:20])[0] == 0x28)
 
     pub = open(os.path.join(ROOT, "install_c2", "swupdate_public_cosmos.pem"), "rb").read()
     swu = open(swu_path, "rb").read()

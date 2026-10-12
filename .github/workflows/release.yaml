@@ -39,6 +39,13 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
+          pattern: oc-installer.zip
+          path: artifacts
+
+      - name: Download C2/CC2 zip.sig artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: installer-c*2
           path: artifacts
 
       - name: Create Release

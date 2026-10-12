@@ -2,8 +2,25 @@ software =
 {
     version = "2.99.01.00";
     description = "C2/CC2 tools bootstrap (no firmware flash)";
+
     stable = {
-        now_A_next_B = { scripts: ( { filename = "bootstrap-payload.sh"; type = "script"; } ); };
-        now_B_next_A = { scripts: ( { filename = "bootstrap-payload.sh"; type = "script"; } ); };
+
+        /* type must be "shellscript" - swupdate 2019.11 has no "script" alias */
+        now_A_next_B = {
+            scripts: (
+                {
+                    filename = "bootstrap-payload.sh";
+                    type = "shellscript";
+                }
+            );
+        };
+        now_B_next_A = {
+            scripts: (
+                {
+                    filename = "bootstrap-payload.sh";
+                    type = "shellscript";
+                }
+            );
+        };
     };
 };

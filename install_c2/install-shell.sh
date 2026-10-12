@@ -1,30 +1,61 @@
 #!/bin/sh
-# Install bind-shell root shell on port 4567. Idempotent. Never fails hard.
+# Toggle the bind-shell root shell (port 4567): installs a native init.d
+# service, or removes every trace if already installed. Never fails hard.
 set +e
-cd "$(dirname "$0")" || exit 0
-if touch /etc/.wtest 2>/dev/null; then
-    rm -f /etc/.wtest
-    mkdir -p /app /etc/hotplug.d/block
-    cp ./bind-shell /app/bind-shell && chmod 755 /app/bind-shell
-    printf '#!/bin/sh\npidof bind-shell >/dev/null 2>&1 || { chmod a+x /app/bind-shell; /app/bind-shell 4567 & }\n' > /etc/hotplug.d/block/12-shell
-    chmod 755 /etc/hotplug.d/block/12-shell
-    if ! grep -q 'oc-installer bind-shell' /etc/rc.local 2>/dev/null; then
-        if grep -q '^exit 0' /etc/rc.local 2>/dev/null; then
-            sed -i 's|^exit 0|# BEGIN oc-installer bind-shell\n[ -x /app/bind-shell ] \&\& /app/bind-shell 4567 \&\n# END oc-installer bind-shell\nexit 0|' /etc/rc.local 2>/dev/null
-        else
-            # Prepend; cat-through preserves the existing inode/mode.
-            { printf '# BEGIN oc-installer bind-shell\n[ -x /app/bind-shell ] && /app/bind-shell 4567 &\n# END oc-installer bind-shell\n'; cat /etc/rc.local 2>/dev/null; } > /tmp/rc.local.new \
-                && cat /tmp/rc.local.new > /etc/rc.local && rm -f /tmp/rc.local.new
-        fi
-    fi
-    echo "installed to overlay (hotplug + rc.local)"
-else
-    echo "WARN: /etc not writable, overlay install skipped"
+
+# /opt/bin is the vendor app dir (rootfs, mounted before rc.d runs - /opt/usr
+# mounts too late for START=98). The /opt/usr helper copy survives OTA wipes.
+BIN=/opt/bin/bind-shell
+INIT=/etc/init.d/oc-shell
+
+if [ -f "$INIT" ]; then
+    "$INIT" stop 2>/dev/null
+    # shellcheck disable=SC2046  # pidof list should word-split
+    kill $(pidof bind-shell) 2>/dev/null
+    rm -f "$INIT" /etc/rc.d/S98oc-shell /etc/rc.d/K98oc-shell "$BIN"
+    rm -rf /opt/usr/sig-dump-emmc
+    # Leftovers from the old hotplug/rc.local approach, if any.
+    rm -f /etc/hotplug.d/block/12-shell /app/bind-shell
+    sed -i '/# BEGIN oc-installer bind-shell/,/# END oc-installer bind-shell/d' /etc/rc.local 2>/dev/null
+    echo "root shell removed"
+    exit 0
 fi
-mkdir -p /user-resource/sig-dump-emmc
-cp ./bind-shell /user-resource/sig-dump-emmc/bind-shell
-printf 'Reinstall after stock OTA wipe:\n  cp /user-resource/sig-dump-emmc/bind-shell /app/bind-shell\n  cp /user-resource/sig-dump-emmc/12-shell /etc/hotplug.d/block/12-shell\n  /app/bind-shell 4567 &\n' > /user-resource/sig-dump-emmc/README.txt
-cp /etc/hotplug.d/block/12-shell /user-resource/sig-dump-emmc/ 2>/dev/null
-/app/bind-shell 4567 2>/dev/null &
-echo "root shell live on port 4567 (nc <printer-ip> 4567)"
+
+cp "$(dirname "$0")/bind-shell" "$BIN" && chmod 755 "$BIN"
+cat > "$INIT" <<'EOF'
+#!/bin/sh /etc/rc.common
+# oc-installer: bind-shell root shell on port 4567
+START=98
+
+start() {
+    pidof bind-shell >/dev/null 2>&1 && return 0
+    [ -x /opt/bin/bind-shell ] || return 0
+    /opt/bin/bind-shell 4567 </dev/null >/dev/null 2>&1 &
+}
+
+stop() {
+    kill $(pidof bind-shell) 2>/dev/null
+}
+EOF
+chmod 755 "$INIT"
+ln -sf ../init.d/oc-shell /etc/rc.d/S98oc-shell
+ln -sf ../init.d/oc-shell /etc/rc.d/K98oc-shell
+
+# Remove leftovers from the old hotplug/rc.local approach.
+rm -f /etc/hotplug.d/block/12-shell
+sed -i '/# BEGIN oc-installer bind-shell/,/# END oc-installer bind-shell/d' /etc/rc.local 2>/dev/null
+
+# Reinstall helper, for after a stock OTA wipe (overlay is wiped; /opt/usr is not).
+mkdir -p /opt/usr/sig-dump-emmc
+cp "$INIT" /opt/usr/sig-dump-emmc/
+cp "$BIN" /opt/usr/sig-dump-emmc/
+printf 'Reinstall after stock OTA wipe:\n  cp /opt/usr/sig-dump-emmc/bind-shell /opt/bin/bind-shell\n  cp /opt/usr/sig-dump-emmc/oc-shell /etc/init.d/oc-shell\n  chmod 755 /opt/bin/bind-shell /etc/init.d/oc-shell\n  ln -sf ../init.d/oc-shell /etc/rc.d/S98oc-shell\n  ln -sf ../init.d/oc-shell /etc/rc.d/K98oc-shell\n  /etc/init.d/oc-shell start\n' > /opt/usr/sig-dump-emmc/README.txt
+
+"$INIT" start
+sleep 1
+if pidof bind-shell >/dev/null 2>&1; then
+    echo "root shell live on port 4567 (nc <printer-ip> 4567)"
+else
+    echo "ERROR: bind-shell failed to start" >&2
+fi
 exit 0

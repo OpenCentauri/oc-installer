@@ -29,13 +29,12 @@ Centauri Carbon 2. It can:
 
 ### Usage (C2/CC2)
 
-1. Run `./build.sh` on a Linux host (needs python3, openssl, curl). This runs
-   the tests, builds the bootstrap SWU, and wraps it into
-   `build/cc2_eeb001_installer_*.zip.sig` (CC2) and
-   `build/c2_eeb001_installer_*.zip.sig` (C2).
-2. Copy the `install_c2` folder **and** the right `.zip.sig` for your machine
-   onto a FAT32-formatted thumbdrive (zip.sig at the root, `install_c2` folder
-   beside it).
+1. Grab `installer-cc2` (Centauri Carbon 2) or `installer-c2` (Centauri 2)
+   from the PR/release artifacts — each contains a single
+   `*_eeb001_installer_*.zip.sig`.
+2. Copy the `.zip.sig` onto a FAT32-formatted thumbdrive. That's the only file
+   you need: it self-extracts the installer to `/opt/usr/oc-installer` on the
+   printer and cleans up after itself.
 3. Insert into the printer and apply the update from the printer's update UI.
    Nothing is flashed: the update just launches the installer GUI. Use the
    buttons; "Exit and Reboot" when done.
