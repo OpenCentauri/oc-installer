@@ -40,5 +40,11 @@ completed_actions = [
 ]
 index = 1
 
+[submenus."Utils"."Backup eMMC to USB"]
+tasks = [
+    { name = "Backup eMMC (dd|gzip to USB)", command = ["/bin/sh", "/opt/usr/oc-installer/backup-emmc.sh"], show_stdout = true, stop_on_failure = true },
+]
+index = 2
+
 [scripts."Exit and Reboot"]
 tasks = [{name = "Reboot", command = ["/bin/sh", "-c", "sync; reboot"]}]

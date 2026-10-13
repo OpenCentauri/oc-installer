@@ -45,6 +45,32 @@ remove the shell when finished. `Reload menu` updates the install/remove label.
 After a stock OTA wipe, reinstall with
 `sh /opt/usr/sig-dump-emmc/reinstall.sh`.
 
+### eMMC backup
+
+Keep at least 5 GiB free. Do not print or remove the USB drive during backup.
+The screen shows bytes read and percentage, then checks the gzip archive.
+Compression uses two-worker pigz at level 1; the bundled static binary also
+checks the archive.
+This copies a running system, not a consistent filesystem snapshot.
+
+Each run creates a dated `c2-emmc-backup-*` directory. Previous backups are
+left alone. A `.partial` directory is incomplete; a finished backup contains
+`OK.txt`. Remove unwanted backups on your computer to reclaim space.
+
+FAT32 output is split into 1 GiB parts. exFAT/ext4 output is a single gzip file,
+if the printer supports and mounts that filesystem. On a computer:
+
+```sh
+# FAT32: reassemble the parts inside the backup directory
+cat c2-emmc-backup.bin.gz.part-* > c2-emmc-backup.bin.gz
+
+gzip -t c2-emmc-backup.bin.gz
+gzip -dc c2-emmc-backup.bin.gz | wc -c
+```
+
+The decompressed size on the tested C2/CC2 eMMC is `7837581312` bytes. Use host
+tools for this check; the stock printer's `wc` counter wraps above 4 GiB.
+
 ### Building
 
 Run `./build.sh` with Python 3.11+, OpenSSL, BusyBox, ShellCheck, curl, make

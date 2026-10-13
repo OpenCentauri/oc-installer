@@ -42,7 +42,7 @@ def sh_syntax():
 
 
 def vendored_binaries():
-    for rel in ("install_c2/recovery", "install_c2/bind-shell"):
+    for rel in ("install_c2/recovery", "install_c2/bind-shell", "build/pigz/pigz"):
         with open(os.path.join(ROOT, rel), "rb") as f:
             data = f.read()
         arm = data[:4] == b"\x7fELF" and data[4:6] == b"\x01\x01" and \
@@ -182,7 +182,7 @@ def post_build():
         with tarfile.open(fileobj=io.BytesIO(boot[int(m.group(1)) - 1:]), mode="r:gz") as tf:
             members_t = set(tf.getnames())
             check("payload has all runtime files",
-                  {"run.sh", "config.toml", "recovery", "bind-shell",
+                  {"run.sh", "config.toml", "recovery", "bind-shell", "pigz", "pigz-LICENSE.txt",
                    "check-boot-slot.sh", "backup-emmc.sh", "install-shell.sh",
                    "download-firmware.sh", "install-cosmos.sh",
                    "install-cosmos-local.sh", "swupdate_public_cosmos.pem"} <= members_t,
@@ -232,6 +232,8 @@ def bootstrap_smoke():
         (root / "install_c2").mkdir()
         (root / "tools").mkdir()
         (root / "bin").mkdir()
+        (root / "build/pigz").mkdir(parents=True)
+        (root / "build/pigz/pigz").write_bytes(b"test binary")
         template = Path(ROOT, "tools/bootstrap-payload.sh").read_text().replace(
             "/opt/usr/oc-installer", str(root / "unpacked"))
         (root / "tools/bootstrap-payload.sh").write_text(template)
