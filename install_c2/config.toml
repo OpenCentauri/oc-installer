@@ -31,5 +31,14 @@ tasks = [
 ]
 index = 0
 
+[submenus."Utils"."Install root shell (port 4567)"]
+tasks = [
+    { name = "Install root shell (port 4567)", command = ["/bin/sh", "/opt/usr/oc-installer/install-shell.sh"], show_stdout = true, stop_on_failure = true },
+]
+completed_actions = [
+    { name = "Reload menu", command = ["/bin/sh", "/opt/usr/oc-installer/run.sh", "reload"] },
+]
+index = 1
+
 [scripts."Exit and Reboot"]
 tasks = [{name = "Reboot", command = ["/bin/sh", "-c", "sync; reboot"]}]

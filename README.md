@@ -37,6 +37,14 @@ flash firmware. C2 and CC2 use the same COSMOS image.
 For an offline install, put `cosmos-centauri-carbon-2.swu` on the drive as
 `install_c2/update.swu`.
 
+### Root shell
+
+Installing starts the shell immediately and at boot. Connect with
+`nc <printer-ip> 4567`. There is no authentication; use a trusted network and
+remove the shell when finished. `Reload menu` updates the install/remove label.
+After a stock OTA wipe, reinstall with
+`sh /opt/usr/sig-dump-emmc/reinstall.sh`.
+
 ### Building
 
 Run `./build.sh` with Python 3.11+, OpenSSL, BusyBox, ShellCheck, curl, make
