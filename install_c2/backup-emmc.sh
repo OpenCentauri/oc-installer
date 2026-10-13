@@ -12,7 +12,7 @@ OUTBASE="c2-emmc-backup.bin.gz"
 NEED_KB=5242880   # 5 GiB
 
 say() { echo "[backup] $*"; }
-fail() { say "ERROR: $*"; echo "$* $(date -u 2>/dev/null)" > "$DEST/c2-emmc-backup.FAILED.txt" 2>/dev/null; exit 1; }
+fail() { say "ERROR: $*"; rm -f "$DEST/$OUTBASE.tmp" "$DEST/$OUTBASE.tmp.part-"* 2>/dev/null; echo "$* $(date -u 2>/dev/null)" > "$DEST/c2-emmc-backup.FAILED.txt" 2>/dev/null; exit 1; }
 
 DEST=""
 for mp in /mnt/exUDISK /mnt/UDISK; do
@@ -40,7 +40,12 @@ case "$TOTAL" in ''|*[!0-9]*|0) fail "cannot determine /dev/mmcblk0 size" ;; esa
 say "eMMC size: $TOTAL bytes -> $DEST"
 
 echo "started $(date -u 2>/dev/null), expect $TOTAL bytes" > "$DEST/c2-emmc-backup.STARTED.txt"
-rm -f "$DEST/c2-emmc-backup.OK.txt" "$DEST/c2-emmc-backup.FAILED.txt" "$DEST/$OUTBASE" "$DEST/$OUTBASE.part-"*
+# Dump to .tmp names and promote only after the stream verifies: an existing
+# backup survives a failed/interrupted run instead of being deleted up front.
+rm -f "$DEST/c2-emmc-backup.OK.txt" "$DEST/c2-emmc-backup.FAILED.txt" "$DEST/$OUTBASE.tmp" "$DEST/$OUTBASE.tmp.part-"*
+if [ -e "$DEST/$OUTBASE" ] || ls "$DEST/$OUTBASE.part-"* >/dev/null 2>&1; then
+    say "existing backup found - keeping it until the new one verifies"
+fi
 
 sync
 for s in grumpyscreen moonraker klipper klippy ai_camera; do
@@ -75,7 +80,7 @@ if [ "$IS_VFAT" = "1" ]; then
     read_emmc | gzip -1 | {
         i=0
         while :; do
-            part=$(printf '%s.part-%03d' "$DEST/$OUTBASE" "$i")
+            part=$(printf '%s.tmp.part-%03d' "$DEST/$OUTBASE" "$i")
             head -c 3984588800 > "$part"
             [ -s "$part" ] || { rm -f "$part"; break; }
             [ "$(wc -c < "$part")" -lt 3984588800 ] && break
@@ -83,7 +88,7 @@ if [ "$IS_VFAT" = "1" ]; then
         done
     }
 else
-    read_emmc | gzip -1 > "$DEST/$OUTBASE"
+    read_emmc | gzip -1 > "$DEST/$OUTBASE.tmp"
 fi
 sync
 
@@ -93,12 +98,23 @@ sync
 say "verifying gzip stream (this takes a few minutes)..."
 VERIFY_OK=1
 if [ "$IS_VFAT" = "1" ]; then
-    cat "$DEST/$OUTBASE.part-"* | gzip -dc > /dev/null 2>&1 || VERIFY_OK=0
+    cat "$DEST/$OUTBASE.tmp.part-"* | gzip -dc > /dev/null 2>&1 || VERIFY_OK=0
 else
-    gzip -dc "$DEST/$OUTBASE" > /dev/null 2>&1 || VERIFY_OK=0
+    gzip -dc "$DEST/$OUTBASE.tmp" > /dev/null 2>&1 || VERIFY_OK=0
 fi
 if [ "$VERIFY_OK" != "1" ]; then
     fail "gzip stream corrupt or truncated (stick full? pulled early?)"
+fi
+
+# Verified: replace any previous backup with the new one.
+rm -f "$DEST/$OUTBASE" "$DEST/$OUTBASE.part-"*
+if [ "$IS_VFAT" = "1" ]; then
+    for f in "$DEST/$OUTBASE.tmp.part-"*; do
+        [ -e "$f" ] || continue
+        mv "$f" "${f%.tmp.part-*}.part-${f##*.part-}"
+    done
+else
+    mv "$DEST/$OUTBASE.tmp" "$DEST/$OUTBASE"
 fi
 
 ls -l "$DEST/$OUTBASE"* > "$DEST/c2-emmc-backup.OK.txt"
