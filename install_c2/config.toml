@@ -1,0 +1,35 @@
+window_title = "OpenCentauri installer (C2/CC2)"
+
+[display.framebuffer]
+fb_path = "/dev/fb0"
+event_path = "/dev/input/event0"
+
+[submenus."Install COSMOS"."Install COSMOS (Online)"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/opt/usr/oc-installer/check-boot-slot.sh"], show_stdout = true, stop_on_failure = true },
+    { name = "Download firmware", command = ["/bin/sh", "/opt/usr/oc-installer/download-firmware.sh"], show_stdout = true, stop_on_failure = true },
+    { name = "Install firmware", command = ["/bin/sh", "/opt/usr/oc-installer/install-cosmos.sh"], show_stdout = true, stop_on_failure = true },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 0
+
+[submenus."Install COSMOS"."Install COSMOS From USB"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/opt/usr/oc-installer/check-boot-slot.sh"], show_stdout = true, stop_on_failure = true },
+    { name = "Install firmware", command = ["/bin/sh", "/opt/usr/oc-installer/install-cosmos-local.sh"], show_stdout = true, stop_on_failure = true },
+]
+completed_actions = [
+    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+]
+index = 1
+
+[submenus."Utils"."Check boot slot"]
+tasks = [
+    { name = "Check boot slot", command = ["/bin/sh", "/opt/usr/oc-installer/check-boot-slot.sh"], show_stdout = true, stop_on_failure = true },
+]
+index = 0
+
+[scripts."Exit and Reboot"]
+tasks = [{name = "Reboot", command = ["/bin/sh", "-c", "sync; reboot"]}]
