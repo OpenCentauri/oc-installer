@@ -4,8 +4,10 @@ on:
   workflow_call:
     inputs:
       ref:
+        description: 'Ref to build (default: the calling ref)'
         type: string
         required: false
+        default: ''
     outputs:
       commit:
         value: ${{ jobs.build.outputs.commit }}
