@@ -12,8 +12,8 @@ on:
         type: string
         default: 'main'
       version:
-        description: 'Version to release (e.g., 1.0.0). If not provided, will be inferred from the latest tag.'
-        required: false
+        description: 'Release tag (e.g., v1.0.0)'
+        required: true
         type: string
       draft:
         description: 'Create as draft release'
@@ -22,34 +22,48 @@ on:
         default: true
 
 permissions:
-  contents: write    # Required by softprops/action-gh-release@v2 to create releases and upload artifacts
-  id-token: write    # Required by actions/attest@v2 for OIDC authentication with the attestation service
-  attestations: write # Required by actions/attest@v2 to create and store attestations
+  contents: read
 
 jobs:
   build:
-    name: Build
     uses: ./.github/workflows/build.yaml
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    with:
+      ref: ${{ inputs.branch || github.sha }}
 
   release:
-    name: Create Release
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - name: Download CC1 release zip
+        uses: actions/download-artifact@v6
         with:
+          pattern: oc-installer.zip
+          path: artifacts
+
+      - name: Download C2/CC2 zip.sig artifacts
+        uses: actions/download-artifact@v6
+        with:
+          pattern: installer-c*2
           path: artifacts
 
       - name: Create Release
-        id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ github.event.inputs.version || github.ref_name }}
-          draft: ${{ github.event.inputs.draft || false }}
+          tag_name: ${{ inputs.version || github.ref_name }}
+          target_commitish: ${{ needs.build.outputs.commit }}
+          draft: ${{ github.event_name == 'workflow_dispatch' && inputs.draft }}
           prerelease: false
           generate_release_notes: false
           files: artifacts/**/*
+          fail_on_unmatched_files: true
 
       - name: Attest Release
         uses: actions/attest@v2
@@ -58,7 +72,7 @@ jobs:
           predicate-type: 'https://in-toto.io/attestation/release/v0.1'
           predicate: |
             {
-              "version": "${{ github.event.inputs.version || github.ref_name }}",
-              "commit": "${{ github.sha }}",
-              "branch": "${{ github.event.inputs.branch || github.ref_name }}"
+              "version": ${{ toJSON(inputs.version || github.ref_name) }},
+              "commit": ${{ toJSON(needs.build.outputs.commit) }},
+              "branch": ${{ toJSON(inputs.branch || github.ref_name) }}
             }
