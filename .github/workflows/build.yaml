@@ -59,25 +59,29 @@ jobs:
       - name: Build all installers
         run: ./build.sh
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload CC1 installer
+        uses: actions/upload-artifact@v4
         with:
           name: installer-cc1
           path: build/cc1
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload CC1 release zip
+        uses: actions/upload-artifact@v4
         with:
           name: oc-installer.zip
           path: build/oc-installer.zip
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload CC2 installer
+        uses: actions/upload-artifact@v4
         with:
           name: installer-cc2
           path: build/cc2_eeb001_*.zip.sig
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload C2 installer
+        uses: actions/upload-artifact@v4
         with:
           name: installer-c2
           path: build/c2_eeb001_*.zip.sig
