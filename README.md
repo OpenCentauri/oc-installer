@@ -5,14 +5,17 @@ This installer can
 - Install OpenCentauri
 - Update OpenCentauri
 - Uninstall OpenCentauri
+- Back up the eMMC to USB with live progress
 - Install or remove a root shell (port 4567)
 
-In `Utils`, stock CC1 can install or remove the root shell. Installation refuses
-if TCP port 4567 is already listening, reporting
-`ERROR: Root shell already installed/running` without changing anything.
-An installer-managed shell can still be removed.
+In `Utils`, the shell control and eMMC backup occupy the same positions as on
+C2/CC2. Before installing, the shell control checks TCP port 4567. If it is
+already listening, it reports `ERROR: Root shell already installed/running`
+without changing anything. An installer-managed shell can still be removed.
+CC1 backups use `cc1-emmc-backup-*`; the backup rules below apply to both models.
 CC1 shell recovery files are stored in `/user-resource/oc-root-shell`.
 After a stock OTA, restore with `sh /user-resource/oc-root-shell/reinstall.sh`.
+Logs stay on USB at `/mnt/exUDISK/OCInstaller.log`.
 
 ## Usage
 1. [Download](https://github.com/OpenCentauri/oc-installer/releases/latest/download/oc-installer.zip) the latest release
@@ -23,6 +26,10 @@ After a stock OTA, restore with `sh /user-resource/oc-root-shell/reinstall.sh`.
 6. Touch hold the `IMPORT_ME_DO_NOT_PRINT` file, then select `Import`
 7. Run `Install OpenCentauri (Online)`
 8. Restart when the install process finished
+
+For a local OpenCentauri/COSMOS install, place `update.swu` or
+`cosmos-centauri-carbon-1.swu` inside `install_opencentauri/` on the USB drive.
+`update.swu` takes precedence if both exist; other `.swu` filenames are ignored.
 
 ## Centauri 2 / Centauri Carbon 2
 
@@ -42,10 +49,21 @@ The update opens the installer without flashing firmware. It stops the stock
 updater and clears its pending update flags. Only the COSMOS install buttons
 flash firmware. C2 and CC2 use the same COSMOS image.
 
-For an offline install, put `cosmos-centauri-carbon-2.swu` on the drive as
-`install_c2/update.swu`.
+The installer extracts to `/oc-installer`, not `/opt/usr`. Bootstrap, GUI and
+command output, errors and exit statuses append to `/mnt/exUDISK/OCInstaller.log`.
+Keep that USB mount writable; the installer does not fall back to internal logs.
+Every Reboot action removes `/oc-installer` and syncs before rebooting.
+
+For an offline install, put `update.swu` or `cosmos-centauri-carbon-2.swu`
+in the USB drive's root. `update.swu` takes precedence if both exist.
+The old `install_c2/update.swu` path remains a fallback. Empty files and
+directories are ignored; the selected USB original is never deleted.
 
 ### Root shell
+
+On CC1 and C2/CC2, `Start temp root shell (port 4567)` runs the extracted
+binary in the background without installing a service or changing autostart.
+It refuses to start if port 4567 is already listening.
 
 Installing starts the shell immediately and at boot. Connect with
 `nc <printer-ip> 4567`. There is no authentication; use a trusted network and
@@ -84,7 +102,10 @@ tools for this check; the stock printer's `wc` counter wraps above 4 GiB.
 Run `./build.sh` with Python 3.11+, OpenSSL, BusyBox, ShellCheck, curl, make
 and `gcc-arm-linux-gnueabihf` installed.
 It builds static pigz from pinned musl/zlib/pigz sources, tests the scripts,
-and writes both `.zip.sig` files under `build/`. CI caches the pigz build.
+and writes `oc-installer.zip` for CC1 plus both C2/CC2 `.zip.sig` files under
+`build/`. The CC1 ZIP includes the same static pigz and bind-shell helpers.
+CI caches the pigz build.
 Third-party notices are included in the installer.
-The GUI and root-shell binaries come from OpenCentauri releases. The OTA
+The bundled GUI is built from OpenCentauri/atomscreen with live task output.
+The root-shell binary comes from OpenCentauri. The OTA
 wrapper follows the format used by [COSMOS](https://github.com/OpenCentauri/cosmos).

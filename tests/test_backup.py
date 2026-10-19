@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class BackupTest(unittest.TestCase):
-    def run_backup(self, filesystem="vfat", fault="", shell="sh", repeat=False):
+    def run_backup(self, filesystem="vfat", fault="", shell="sh", repeat=False, model="c2"):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             usb = root / "usb"
@@ -58,7 +58,7 @@ class BackupTest(unittest.TestCase):
                 path.chmod(0o755)
             env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}")
             command = ["busybox", "ash"] if shell == "busybox" else [shell]
-            result = subprocess.run(command + [str(target)], env=env, capture_output=True, timeout=20)
+            result = subprocess.run(command + [str(target), model], env=env, capture_output=True, timeout=20)
             self.assertEqual(old.read_bytes(), b"previous backup")
             backups = sorted(p for p in usb.iterdir() if p.is_dir())
             if fault:
@@ -72,14 +72,14 @@ class BackupTest(unittest.TestCase):
             self.assertEqual(len(backups), 1)
             folder = backups[0]
             self.assertFalse(folder.name.endswith(".partial"))
-            files = sorted(folder.glob("c2-emmc-backup.bin.gz*"))
+            files = sorted(folder.glob(f"{model}-emmc-backup.bin.gz*"))
             self.assertEqual(gzip.decompress(b"".join(f.read_bytes() for f in files)), data)
             self.assertEqual(len(files) > 1, filesystem == "vfat")
             self.assertIn(f"Read {len(data)} / {len(data)} bytes (100%)".encode(), result.stdout)
             self.assertIn(b"Checking gzip archive", result.stdout)
             self.assertIn(str(len(data)), (folder / "OK.txt").read_text())
             if repeat:
-                second = subprocess.run(command + [str(target)], env=env, capture_output=True, timeout=20)
+                second = subprocess.run(command + [str(target), model], env=env, capture_output=True, timeout=20)
                 self.assertNotEqual(second.returncode, 0)
                 self.assertEqual(gzip.decompress(b"".join(f.read_bytes() for f in files)), data)
 
@@ -92,6 +92,13 @@ class BackupTest(unittest.TestCase):
         for fault in ("short", "reader", "compress", "writer", "verify", "space", "internal"):
             with self.subTest(fault=fault):
                 self.run_backup(fault=fault)
+
+    def test_cc1_uses_the_same_backup_and_safety_checks(self):
+        for filesystem in ("vfat", "exfat", "ext4"):
+            self.run_backup(filesystem=filesystem, model="cc1")
+        for fault in ("short", "reader", "compress", "writer", "verify", "space", "internal"):
+            self.run_backup(fault=fault, model="cc1")
+        self.run_backup(model="cc1", shell="busybox", repeat=True)
 
     def test_existing_directory_is_not_reused(self):
         self.run_backup(repeat=True)

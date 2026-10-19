@@ -2,6 +2,11 @@
 set -e
 exec 2>&1
 export PATH="$PATH:/sbin:/usr/sbin"
+temporary=false
+if [ "${1:-}" = --temporary ]; then
+    temporary=true
+    shift
+fi
 init=/etc/init.d/oc-shell
 save=${1:-/opt/usr/oc-root-shell}
 case "$save" in
@@ -9,7 +14,7 @@ case "$save" in
     *) echo "ERROR: unsupported root shell location"; exit 1 ;;
 esac
 
-if [ ! -f "$init" ]; then
+if [ "$temporary" = true ] || [ ! -f "$init" ]; then
     # 11D7 is port 4567; 0A is TCP_LISTEN. Check IPv4 and IPv6 tables.
     listening=$(awk '$2 ~ /:11D7$/ && $4 == "0A" { busy=1 } END { print busy+0 }' /proc/net/tcp*) || {
         echo "ERROR: cannot check root shell port"; exit 1
@@ -17,6 +22,20 @@ if [ ! -f "$init" ]; then
     if [ "$listening" -ne 0 ]; then
         echo "ERROR: Root shell already installed/running"; exit 1
     fi
+fi
+
+if [ "$temporary" = true ]; then
+    payload=$(CDPATH='' cd "$(dirname "$0")" && pwd)
+    (
+        trap '' HUP
+        exec "$payload/bind-shell" 4567
+    ) </dev/null >/dev/null 2>&1 &
+    pid=$!
+    sleep 1
+    kill -0 "$pid" 2>/dev/null || { echo "ERROR: temporary root shell failed to start"; exit 1; }
+    echo "Temporary root shell live on port 4567 until reboot."
+    echo "nc <printer-ip> 4567 (unauthenticated; trusted networks only)."
+    exit 0
 fi
 
 # Remove the old autostart paths so they cannot resurrect a disabled shell.

@@ -2,6 +2,9 @@
 
 set -e
 export LC_ALL=C
+model=${1:-c2}
+case "$model" in c2|cc1) ;; *) echo "Unknown backup target"; exit 1 ;; esac
+name=$model-emmc-backup
 
 cd "$(dirname "$0")"
 compressor="$PWD/pigz"
@@ -35,7 +38,7 @@ chunk_blocks=1024
 part_size=1073741824
 
 # Each run gets its own directory. Never overwrite a previous backup.
-backup="$usb/c2-emmc-backup-$(date +%Y%m%d-%H%M%S)"
+backup="$usb/$name-$(date +%Y%m%d-%H%M%S)"
 work="$backup.partial"
 if [ -e "$backup" ] || ! mkdir "$work"; then
     echo "Backup directory already exists or is not writable: $work"
@@ -82,7 +85,7 @@ write_archive() {
     if awk -v path="$usb" '$2 == path && $3 == "vfat" { found=1 } END { exit !found }' /proc/mounts; then
         part=0
         while :; do
-            file=$(printf '%s/c2-emmc-backup.bin.gz.part-%03d' "$work" "$part")
+            file=$(printf '%s/%s.bin.gz.part-%03d' "$work" "$name" "$part")
             # head counts bytes, unlike dd count= on short pipe reads.
             head -c "$part_size" > "$file" || return 1
             if [ ! -s "$file" ]; then
@@ -92,7 +95,7 @@ write_archive() {
             part=$((part + 1))
         done
     else
-        cat > "$work/c2-emmc-backup.bin.gz"
+        cat > "$work/$name.bin.gz"
     fi
 }
 
@@ -102,7 +105,7 @@ read_emmc | { "$compressor" -1 -p 2 && touch "$work/gzip.ok"; } | write_archive
 sync
 
 echo "Read complete. Checking gzip archive..."
-cat "$work"/c2-emmc-backup.bin.gz* | "$compressor" -t
+cat "$work/$name.bin.gz"* | "$compressor" -t
 rm "$work/read.ok" "$work/gzip.ok" "$work/dd.log"
 printf '%s bytes read; gzip integrity checked\n' "$total" > "$work/OK.txt"
 mv "$work" "$backup"

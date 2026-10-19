@@ -17,15 +17,14 @@ if ! dd if="$swu" bs=8192 count=1 2>/dev/null | grep -aq 'elegoo-centauri-carbon
     echo "ERROR: not a C2/CC2 COSMOS SWU."
     exit 1
 fi
-sel=stable
-if dd if="$swu" bs=8192 count=1 2>/dev/null | grep -aq 'cosmos[[:space:]]*='; then
-    sel=cosmos
-fi
-set -- -i "$swu" -e "$sel,$slot"
+# Both stock and Cosmos can select the top-level stable section. Merely
+# finding a machine-specific cosmos alias does not make it usable on stock.
+set -- -i "$swu" -e "stable,$slot"
 if swupdate -h 2>&1 | grep -q -- '-k'; then
     set -- "$@" -k ./swupdate_public_cosmos.pem
 fi
-echo "Installing: selection=$sel,$slot"
+echo "Installing: selection=stable,$slot"
+# Use one updater invocation; the vendor wrapper retries and changes wipe flags.
 swupdate "$@" || { rc=$?; echo "ERROR: swupdate failed ($rc); do not reboot."; exit "$rc"; }
 sync
 echo "Install complete. Reboot when ready."

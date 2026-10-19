@@ -1,23 +1,23 @@
 #!/bin/sh
-
+set -e
 cd /user-resource/update_tmp
 
 curr=$(fw_printenv boot_partition | awk -F= '{ print $2 }' | tr -d '[:space:]')
+case "$curr" in
+    bootA) boot_partition=now_A_next_B ;;
+    bootB) boot_partition=now_B_next_A ;;
+    *) exit 1 ;;
+esac
 
-if [[ "$curr" == "bootA" ]]; then
-    boot_partition="now_A_next_B"
-elif [[ "$curr" == "bootB" ]]; then
-    boot_partition="now_B_next_A"
-else
-    exit 1
-fi
-
-if [[ -f /mnt/exUDISK/install_opencentauri/update.swu ]]; then
-    set -e
-    swupdate -i /mnt/exUDISK/install_opencentauri/update.swu -e stable,${boot_partition} -k /user-resource/update_tmp/swupdate_public.pem
-    rm /board-resource/printer.cfg
-    sync
-else
-    echo -e "File does not exist.\nEnsure that usb://install_opencentauri/update.swu exists."
-    exit 1
-fi
+for swu in /mnt/exUDISK/install_opencentauri/update.swu \
+           /mnt/exUDISK/install_opencentauri/cosmos-centauri-carbon-1.swu; do
+    if [ -f "$swu" ] && [ -s "$swu" ]; then
+        echo "Using local firmware: $swu"
+        swupdate -i "$swu" -e "stable,$boot_partition" -k /user-resource/update_tmp/swupdate_public.pem
+        rm /board-resource/printer.cfg
+        sync
+        exit 0
+    fi
+done
+echo "File not found: put update.swu or cosmos-centauri-carbon-1.swu in usb://install_opencentauri/"
+exit 1

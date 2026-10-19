@@ -12,7 +12,7 @@ ELEG header is 512 bytes, little-endian:
   0xE0 sha256(payload as shipped) (32 bytes)
   0x100 RSA-2048 PKCS1v15 signature over the payload (256 bytes)
 
-Usage: make_zipsig.py <input.swu> [--version 26.09.00.00] [--out build/]
+Usage: make_zipsig.py <input.swu> [--version 42.42.42.42] [--out build/]
 """
 import argparse
 import hashlib
@@ -88,9 +88,29 @@ def eleg_encrypt(pkg_type, filename, plain, header_minor):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("swu")
-    ap.add_argument("--version", default="26.09.00.00")
+    # Use an unmistakable dotted-quad version for the installer bundle.
+    ap.add_argument("--version", default="42.42.42.42")
     ap.add_argument("--out", default=os.path.join(ROOT, "build"))
     args = ap.parse_args()
+
+    # Filename label: exact tag when built on one (no hash), else
+    # <last-tag>-<short hash> plus a trailing -dirty. The eeb001 prefix stays:
+    # the stock updater matches on it. The manifest version stays a clean
+    # dotted quad — the daemon version gate rejects anything else.
+    def git(*args):
+        try:
+            return subprocess.run(["git", "-C", ROOT, *args],
+                                  capture_output=True, text=True).stdout.strip()
+        except FileNotFoundError:
+            return ""
+    rev = git("describe", "--tags", "--exact-match")
+    if not rev:
+        last = git("describe", "--tags", "--abbrev=0") or "untagged"
+        rev = f"{last}-{git('rev-parse', '--short', 'HEAD') or 'unknown'}"
+    # Only tracked edits count as dirty; build outputs and fetched helpers
+    # are untracked on every build.
+    dirty = bool(git("status", "--porcelain", "--untracked-files=no"))
+    file_label = f"OCInstaller-{rev}{'-dirty' if dirty else ''}"
 
     with open(args.swu, "rb") as f:
         swu = f.read()
@@ -101,6 +121,8 @@ def main():
     for prefix, minor in VARIANTS:
         base = f"{prefix}_{args.version}_{stamp}"
         swu_sig = eleg_encrypt(0, f"{base}.swu", swu, minor)
+        # Manifest version is what the offline-update screen renders and what
+        # the daemon version-gates — keep it a clean dotted quad.
         pkglist = {"packages": [{"file": f"{base}.swu.sig",
                                  "hash": hashlib.sha256(swu_sig).hexdigest()}],
                    "version": args.version, "update_class": "00.00.00.00"}
@@ -119,7 +141,7 @@ def main():
                              filename=f"{base}.zip", filesize=len(blob),
                              encrypt_filesize=len(blob), iv=b"\x00" * 16,
                              payload=blob) + blob
-        out_path = os.path.join(args.out, f"{prefix}_installer_{args.version}.zip.sig")
+        out_path = os.path.join(args.out, f"{prefix}_{file_label}.zip.sig")
         with open(out_path, "wb") as f:
             f.write(outer)
         print(f"wrote {out_path} ({len(outer)} bytes), swu member {base}.swu.sig")

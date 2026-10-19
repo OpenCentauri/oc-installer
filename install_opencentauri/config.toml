@@ -108,6 +108,12 @@ tasks = [
 ]
 index = 0
 
+[submenus."Utils"."Start temp root shell (port 4567)"]
+tasks = [
+    { name = "Start temp root shell (port 4567)", command = ["/bin/sh", "/user-resource/update_tmp/log-task.sh", "/bin/sh", "/user-resource/update_tmp/shell-service.sh", "--temporary"], show_stdout = true, stop_on_failure = true },
+]
+index = 1
+
 [submenus."Utils"."Install root shell (port 4567)"]
 tasks = [
     { name = "Install root shell (port 4567)", command = ["/bin/sh", "/user-resource/update_tmp/log-task.sh", "/bin/sh", "/user-resource/update_tmp/install-shell.sh"], show_stdout = true, stop_on_failure = true },
@@ -115,15 +121,21 @@ tasks = [
 completed_actions = [
     { name = "Reload menu", command = ["/bin/sh", "/user-resource/update_tmp/log-task.sh", "/bin/sh", "/user-resource/update_tmp/run.sh", "reload"] },
 ]
-index = 1
+index = 2
+
+[submenus."Utils"."Backup eMMC to USB"]
+tasks = [
+    { name = "Backup eMMC (dd|gzip to USB)", command = ["/bin/sh", "/user-resource/update_tmp/log-task.sh", "/bin/sh", "/user-resource/update_tmp/backup-emmc.sh", "cc1"], show_stdout = true, stop_on_failure = true },
+]
+index = 3
 
 [submenus."Utils"."Remove Remnants of OpenCentauri"]
 tasks = [{name = "Delete OpenCentauri folder", command = ["rm", "-rf", "/user-resource/OpenCentauri"]}]
-index = 2
+index = 4
 
 [submenus."Utils"."WebUI Fix"]
 tasks = [{name = "Fix WebUI", command = ["/user-resource/update_tmp/utf8-fix", "/user-resource/file_info/file_info.txt"], show_stdout = true}]
-index = 3
+index = 5
 
 [scripts."Reboot"]
 tasks = [{name = "Reboot", command = ["/bin/sh", "-c", "reboot"]}]

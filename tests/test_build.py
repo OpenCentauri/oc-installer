@@ -42,7 +42,8 @@ def sh_syntax():
 
 
 def vendored_binaries():
-    for rel in ("install_c2/recovery", "install_c2/bind-shell", "build/pigz/pigz"):
+    for rel in ("build/recovery/recovery", "build/bind-shell/bind-shell",
+                "build/pigz/pigz", "build/curl/curl"):
         with open(os.path.join(ROOT, rel), "rb") as f:
             data = f.read()
         arm = data[:4] == b"\x7fELF" and data[4:6] == b"\x01\x01" and \
@@ -54,8 +55,12 @@ def vendored_binaries():
             headers = [struct.unpack_from("<I", data, offset + i * size)[0] for i in range(count)]
             check(f"{rel}: statically linked", 2 not in headers and 3 not in headers)
     want = open(os.path.join(ROOT, "install_c2", "bind-shell.sha256")).read().split()[0]
-    got = hashlib.sha256(open(os.path.join(ROOT, "install_c2", "bind-shell"), "rb").read()).hexdigest()
+    got = hashlib.sha256(open(os.path.join(ROOT, "build", "bind-shell", "bind-shell"), "rb").read()).hexdigest()
     check("bind-shell.sha256 matches binary", want == got)
+    # Vendored CA bundle (curl.se/caextract); pinned so changes are reviewed.
+    ca = hashlib.sha256(open(os.path.join(ROOT, "install_c2", "ca-certificates.crt"), "rb").read()).hexdigest()
+    check("ca-certificates.crt matches pinned bundle",
+          ca == "a41b5d356aea97a529fe27e0f7316d2f9d946d75927476cf9cf1b90637d00505")
     derived = subprocess.run(["openssl", "rsa", "-in",
                               os.path.join(ROOT, "keys", "swupdate_private.pem"), "-pubout"],
                              capture_output=True).stdout
@@ -73,8 +78,11 @@ def config():
             idxs.append(body.get("index"))
             for task in body.get("tasks", []) + body.get("completed_actions", []):
                 cmd = task.get("command", [])
+                check(f"{entry}/{task['name']}: command is logged", cmd[:3] == ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh"])
+                if task["name"] == "Reboot":
+                    check(f"{entry}: reboot uses cleanup handler", cmd[-1] == "/oc-installer/reboot.sh")
                 for part in cmd:
-                    if part.startswith("/opt/usr/oc-installer/"):
+                    if part.startswith("/oc-installer/"):
                         exists = os.path.exists(os.path.join(
                             ROOT, "install_c2", part.rsplit("/", 1)[-1]))
                         check(f"{entry}: {os.path.basename(part)} exists in install_c2/", exists)
@@ -82,6 +90,8 @@ def config():
                         pass  # reboot allowed in GUI actions
         check(f"{group}: unique indexes", len(idxs) == len(set(idxs)), str(idxs))
     check("no plain Exit action", not any(k == "Exit" for k in cfg.get("scripts", {})))
+    reboot = cfg["scripts"]["Exit and Reboot"]["tasks"][0]["command"]
+    check("Exit and Reboot is logged and cleans extraction", reboot == ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/reboot.sh"])
 
 
 def no_flash_guards():
@@ -90,7 +100,8 @@ def no_flash_guards():
     safe = ["tools/bootstrap-payload.sh", "tools/sw-description.bootstrap",
             "install_c2/run.sh", "install_c2/backup-emmc.sh",
             "install_c2/install-shell.sh", "install_c2/check-boot-slot.sh",
-            "install_c2/download-firmware.sh"]
+            "install_c2/download-firmware.sh",
+            "install_opencentauri/run.sh", "install_opencentauri/install-shell.sh"]
     for rel in safe:
         with open(os.path.join(ROOT, rel)) as f:
             src = f.read()
@@ -183,9 +194,10 @@ def post_build():
             members_t = set(tf.getnames())
             check("payload has all runtime files",
                   {"run.sh", "config.toml", "recovery", "bind-shell", "pigz", "pigz-LICENSE.txt",
-                   "check-boot-slot.sh", "backup-emmc.sh", "install-shell.sh",
+                   "check-boot-slot.sh", "backup-emmc.sh", "install-shell.sh", "log-task.sh", "reboot.sh",
                    "download-firmware.sh", "install-cosmos.sh",
-                   "install-cosmos-local.sh", "swupdate_public_cosmos.pem"} <= members_t,
+                   "install-cosmos-local.sh", "swupdate_public_cosmos.pem",
+                   "curl", "ca-certificates.crt", "curl-LICENSE.txt"} <= members_t,
                   str(sorted(members_t)))
             eh = tf.extractfile("recovery").read(20)
             check("payload recovery is 32-bit ARM ELF",
@@ -196,6 +208,7 @@ def post_build():
     variants = sorted(f for f in os.listdir(BUILD) if f.endswith(".zip.sig"))
     check("two zip.sig variants", len(variants) == 2, str(variants))
     for v in variants:
+        check(f"{v}: labeled from a tag, not untagged", "untagged" not in v)
         blob = open(os.path.join(BUILD, v), "rb").read()
         hdr, payload = parse_eleg(blob)
         check(f"{v}: outer type 4 plain", hdr["type"] == 4 and not hdr["encrypted"])
@@ -211,6 +224,9 @@ def post_build():
         swu_sig = zf.read(next(n for n in names if n.endswith(".swu.sig")))
         jhdr, jenc = parse_eleg(zf.read("ota-package-list.json.sig"))
         manifest = __import__("json").loads(aes_decrypt(jhdr["iv"], jenc)[:jhdr["filesize"]])
+        check(f"{v}: manifest version", manifest["version"] == "42.42.42.42", manifest["version"])
+        check(f"{v}: filename omits manifest version",
+              f"-{manifest['version']}.zip.sig" not in v)
         check(f"{v}: manifest hash matches swu.sig",
               manifest["packages"][0]["hash"] == hashlib.sha256(swu_sig).hexdigest())
         check(f"{v}: manifest member name", manifest["packages"][0]["file"] == next(
@@ -232,16 +248,23 @@ def bootstrap_smoke():
         (root / "install_c2").mkdir()
         (root / "tools").mkdir()
         (root / "bin").mkdir()
-        (root / "build/pigz").mkdir(parents=True)
-        (root / "build/pigz/pigz").write_bytes(b"test binary")
+        for rel in ("build/pigz/pigz", "build/curl/curl",
+                    "build/recovery/recovery", "build/bind-shell/bind-shell"):
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (root / rel).write_bytes(b"test binary")
+        (root / "usb").mkdir()
         template = Path(ROOT, "tools/bootstrap-payload.sh").read_text().replace(
-            "/opt/usr/oc-installer", str(root / "unpacked"))
+            "dest=/oc-installer", f"dest={root / 'unpacked'}").replace(
+            "/mnt/exUDISK", str(root / "usb"))
         (root / "tools/bootstrap-payload.sh").write_text(template)
         (root / "install_c2/run.sh").write_text(f"#!/bin/sh\nprintf gui >> '{root}/calls'\n")
         for name in ("killall", "fw_setenv"):
             stub = root / "bin" / name
             stub.write_text("#!/bin/sh\nexit 0\n")
             stub.chmod(0o755)
+        stub = root / "bin/mount"
+        stub.write_text(f"#!/bin/sh\nprintf 'usb on {root}/usb type vfat (rw)\\n'\n")
+        stub.chmod(0o755)
         setattr(packer, "ROOT", tmp)
         payload = packer.bootstrap_script()
         script = root / "bootstrap.sh"

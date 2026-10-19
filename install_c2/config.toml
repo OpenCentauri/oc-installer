@@ -6,45 +6,51 @@ event_path = "/dev/input/event0"
 
 [submenus."Install COSMOS"."Install COSMOS (Online)"]
 tasks = [
-    { name = "Check boot slot", command = ["/bin/sh", "/opt/usr/oc-installer/check-boot-slot.sh"], show_stdout = true, stop_on_failure = true },
-    { name = "Download firmware", command = ["/bin/sh", "/opt/usr/oc-installer/download-firmware.sh"], show_stdout = true, stop_on_failure = true },
-    { name = "Install firmware", command = ["/bin/sh", "/opt/usr/oc-installer/install-cosmos.sh"], show_stdout = true, stop_on_failure = true },
+    { name = "Check boot slot", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/check-boot-slot.sh"], show_stdout = true, stop_on_failure = true },
+    { name = "Download firmware", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/download-firmware.sh"], show_stdout = true, stop_on_failure = true },
+    { name = "Install firmware", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/install-cosmos.sh"], show_stdout = true, stop_on_failure = true },
 ]
 completed_actions = [
-    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+    { name = "Reboot", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/reboot.sh"] },
 ]
 index = 0
 
 [submenus."Install COSMOS"."Install COSMOS From USB"]
 tasks = [
-    { name = "Check boot slot", command = ["/bin/sh", "/opt/usr/oc-installer/check-boot-slot.sh"], show_stdout = true, stop_on_failure = true },
-    { name = "Install firmware", command = ["/bin/sh", "/opt/usr/oc-installer/install-cosmos-local.sh"], show_stdout = true, stop_on_failure = true },
+    { name = "Check boot slot", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/check-boot-slot.sh"], show_stdout = true, stop_on_failure = true },
+    { name = "Install firmware", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/install-cosmos-local.sh"], show_stdout = true, stop_on_failure = true },
 ]
 completed_actions = [
-    { name = "Reboot", command = ["/bin/sh", "-c", "reboot"] },
+    { name = "Reboot", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/reboot.sh"] },
 ]
 index = 1
 
 [submenus."Utils"."Check boot slot"]
 tasks = [
-    { name = "Check boot slot", command = ["/bin/sh", "/opt/usr/oc-installer/check-boot-slot.sh"], show_stdout = true, stop_on_failure = true },
+    { name = "Check boot slot", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/check-boot-slot.sh"], show_stdout = true, stop_on_failure = true },
 ]
 index = 0
 
-[submenus."Utils"."Install root shell (port 4567)"]
+[submenus."Utils"."Start temp root shell (port 4567)"]
 tasks = [
-    { name = "Install root shell (port 4567)", command = ["/bin/sh", "/opt/usr/oc-installer/install-shell.sh"], show_stdout = true, stop_on_failure = true },
-]
-completed_actions = [
-    { name = "Reload menu", command = ["/bin/sh", "/opt/usr/oc-installer/run.sh", "reload"] },
+    { name = "Start temp root shell (port 4567)", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/install-shell.sh", "--temporary"], show_stdout = true, stop_on_failure = true },
 ]
 index = 1
 
-[submenus."Utils"."Backup eMMC to USB"]
+[submenus."Utils"."Install root shell (port 4567)"]
 tasks = [
-    { name = "Backup eMMC (dd|gzip to USB)", command = ["/bin/sh", "/opt/usr/oc-installer/backup-emmc.sh"], show_stdout = true, stop_on_failure = true },
+    { name = "Install root shell (port 4567)", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/install-shell.sh"], show_stdout = true, stop_on_failure = true },
+]
+completed_actions = [
+    { name = "Reload menu", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/run.sh", "reload"] },
 ]
 index = 2
 
+[submenus."Utils"."Backup eMMC to USB"]
+tasks = [
+    { name = "Backup eMMC (dd|gzip to USB)", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/backup-emmc.sh"], show_stdout = true, stop_on_failure = true },
+]
+index = 3
+
 [scripts."Exit and Reboot"]
-tasks = [{name = "Reboot", command = ["/bin/sh", "-c", "sync; reboot"]}]
+tasks = [{name = "Reboot", command = ["/bin/sh", "/oc-installer/log-task.sh", "/bin/sh", "/oc-installer/reboot.sh"]}]

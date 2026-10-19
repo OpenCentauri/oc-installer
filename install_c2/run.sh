@@ -9,13 +9,9 @@ if [ "${1:-}" = reload ]; then
     kill "$(cat .recovery.pid)"
     exit 0
 fi
-log_dest=${1:-}
-if [ -z "$log_dest" ]; then
-    for mp in /mnt/exUDISK /mnt/UDISK; do
-        if mount | grep -q " on $mp "; then log_dest=$mp; break; fi
-    done
-fi
-log_dest=${log_dest:-$PWD}
+mount | grep -q ' on /mnt/exUDISK ' || { echo "ERROR: USB log destination is not mounted"; exit 1; }
+exec >> /mnt/exUDISK/OCInstaller.log 2>&1
+printf '[%s] Starting installer GUI\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 chmod a+x ./recovery ./bind-shell
 for proc in app ec-eeb001-gui; do
     pids=$(pidof "$proc" 2>/dev/null) || continue
@@ -29,7 +25,7 @@ while :; do
     action=Install
     [ ! -f /etc/init.d/oc-shell ] || action=Remove
     sed -i "s/Install root shell/$action root shell/g; s/Remove root shell/$action root shell/g" ./config.toml
-    ./recovery ./config.toml >> "$log_dest/recovery.log" 2>&1 &
+    ./recovery ./config.toml &
     echo $! > .recovery.pid
     rc=0
     wait "$!" || rc=$?

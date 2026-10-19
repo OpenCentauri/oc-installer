@@ -19,8 +19,11 @@ def build(out=None):
                   ("decrypt", "utf8-fix", "wifi-network-config-tool", "run.sh",
                    "config.toml", "install-shell.sh")})
     files.update({name: shared / name for name in
-                  ("recovery", "bind-shell", "bind-shell.sha256", "log-task.sh")})
+                  ("bind-shell.sha256", "pigz-LICENSE.txt", "backup-emmc.sh", "log-task.sh")})
     files["shell-service.sh"] = shared / "install-shell.sh"
+    files["pigz"] = ROOT / "build/pigz/pigz"
+    files["recovery"] = ROOT / "build/recovery/recovery"
+    files["bind-shell"] = ROOT / "build/bind-shell/bind-shell"
     for path in files.values():
         if not path.is_file():
             raise FileNotFoundError(f"Missing CC1 payload: {path}")
@@ -29,7 +32,7 @@ def build(out=None):
     if stage.exists():
         shutil.rmtree(stage)
     stage.mkdir(parents=True)
-    binaries = {"recovery", "bind-shell", "decrypt", "utf8-fix",
+    binaries = {"recovery", "bind-shell", "pigz", "decrypt", "utf8-fix",
                 "wifi-network-config-tool"}
     for name, path in files.items():
         target = stage / name

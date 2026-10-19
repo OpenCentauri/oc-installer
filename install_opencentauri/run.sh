@@ -23,13 +23,13 @@ cp ./recovery /user-resource/update_tmp
 cp ./decrypt /user-resource/update_tmp
 cp ./utf8-fix /user-resource/update_tmp
 cp ./wifi-network-config-tool /user-resource/update_tmp
-cp ./bind-shell /user-resource/update_tmp
+cp ./bind-shell ./pigz /user-resource/update_tmp
 cd /user-resource/update_tmp
 
 printf '%b' "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvkLL7VK9svGKBM4Q39uB\nZNkkxy6zqQeCInOE3PeIhvRa3teowz7MLiYJi+CI/4q6mPysLCo3lfY+cWFCc+U3\n2lhhHJZy2+gEoTt0ecEWKIznd1GNaUMJFzHIHPCc4LssZFQ9ahZPPuoU/wYtguxA\nqPSWsH+SNe8xihy5WRG4363FdvwBQc+Q7DTE7firafCzjfaPuoSClDQsyTcGByxs\n78s23DXbvQ8jLLlVffLMFD4y9KNbuEdyswe9QEUQar+XEwFm7EkVTX+TAHzHn40s\nhW+mpfZZgMxJ6a88A527e7DfBlAnt1ZSIh4xXZMlniv40kdXyqSWO/wqJcbmnUTn\ncQIDAQAB\n-----END PUBLIC KEY-----\n" > swupdate_public.pem
 printf '%b' "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnFBZ/+BuRCESalxGqlEE\nhe3eRigUHAZZdW1nPEQZT/6V1gARirJMzT+KUFKqMgtaQuZTtizB3Uo+PbXXwkEl\nMaGUwRYHOY5ebTt+DfBBWEXvvklKIoKypWF6ta6B37PyHJz4ssnCcCtQRroOllXm\nvrYLjt5tinKJUx3XoO6iLYf2R5r6+8FB3J/i1ZhJuwCBDtIsivyxdQSHsH9pX55V\nMOsWKKyuOVyixL42hwiMxOL8HkmumLVDLeXsl0gp34JRN9tR80H5W5+8TUUXnKst\nvjf+YfzbKCIvvLl3qjDDZW9AlwrWE1mhfxFA/N2qjDQ2rsoquLPiLm3CDVBlKCUP\nfwIDAQAB\n-----END PUBLIC KEY-----\n" > swupdate_public_elegoo.pem
 
-chmod a+x ./recovery ./decrypt ./wifi-network-config-tool ./utf8-fix ./bind-shell
+chmod a+x ./recovery ./decrypt ./wifi-network-config-tool ./utf8-fix ./bind-shell ./pigz
 
 pids=$(pidof app 2>/dev/null) || pids=""
 if [ -n "$pids" ]; then

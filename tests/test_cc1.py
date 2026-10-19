@@ -43,7 +43,7 @@ else
     touch "$TEST_ROOT/etc/init.d/oc-shell"
 fi
 ''')
-        for name in ("decrypt", "utf8-fix", "wifi-network-config-tool", "bind-shell"):
+        for name in ("decrypt", "utf8-fix", "wifi-network-config-tool", "bind-shell", "pigz"):
             self.put(self.source / name, "#!/bin/sh\nexit 0\n")
         self.put(self.source / "recovery", '''#!/bin/sh
 if [ ! -f "$TEST_ROOT/before.toml" ]; then
@@ -87,8 +87,16 @@ exit "$GUI_RC"
         entry = self.menu()
         self.assertNotIn("disabled", entry)
         self.assertNotIn("disabled_reason", entry)
-        self.assertEqual(entry["index"], 1)
-        for name in ("bind-shell", "shell-service.sh"):
+        self.assertEqual(entry["index"], 2)
+        config = tomllib.loads((self.root / "before.toml").read_text())
+        temporary = config["submenus"]["Utils"]["Start temp root shell (port 4567)"]
+        self.assertEqual(temporary["index"], 1)
+        self.assertEqual(temporary["tasks"][0]["command"][-2:],
+                         ["/user-resource/update_tmp/shell-service.sh", "--temporary"])
+        backup = config["submenus"]["Utils"]["Backup eMMC to USB"]
+        self.assertEqual(backup["index"], 3)
+        self.assertEqual(backup["tasks"][0]["command"][-1], "cc1")
+        for name in ("bind-shell", "pigz", "shell-service.sh"):
             self.assertTrue((self.payload / name).is_file())
         self.assertIn("Starting CC1 installer GUI", (self.usb / "OCInstaller.log").read_text())
 
@@ -131,7 +139,7 @@ exit "$GUI_RC"
 
 class PackageTest(unittest.TestCase):
     def test_cc1_scripts_are_posix_and_lint_clean(self):
-        for name in ("run.sh", "install-shell.sh"):
+        for name in ("run.sh", "install-shell.sh", "install-oc-local.sh"):
             path = ROOT / "install_opencentauri" / name
             for command in (["sh", "-n", str(path)], ["shellcheck", "-s", "sh", str(path)]):
                 result = subprocess.run(command, capture_output=True, text=True)
@@ -147,18 +155,19 @@ class PackageTest(unittest.TestCase):
             with zipfile.ZipFile(archive) as zf:
                 names = set(zf.namelist())
                 prefix = "install_opencentauri/"
-                for name in ("install-shell.sh", "shell-service.sh",
-                             "log-task.sh", "bind-shell"):
+                for name in ("backup-emmc.sh", "install-shell.sh", "shell-service.sh",
+                             "log-task.sh", "bind-shell", "pigz-LICENSE.txt"):
                     self.assertIn(prefix + name, names)
                 self.assertTrue(any(Path(n).name.startswith("IMPORT_ME_DO_NOT_PRINT") for n in names))
                 self.assertFalse(any(n.endswith(".log") for n in names))
-                for name in ("recovery", "bind-shell", "decrypt", "utf8-fix", "wifi-network-config-tool"):
+                for name in ("recovery", "bind-shell", "pigz", "decrypt", "utf8-fix", "wifi-network-config-tool"):
                     data = zf.read(prefix + name)
                     self.assertEqual(data[:6], b"\x7fELF\x01\x01", name)
                     self.assertEqual(struct.unpack_from("<HH", data, 16), (2, 0x28), name)
                     self.assertEqual((zf.getinfo(prefix + name).external_attr >> 16) & 0o777, 0o755)
-                self.assertEqual(zf.read(prefix + "recovery"), (ROOT / "install_c2/recovery").read_bytes())
-                for staged, shared in (("shell-service.sh", "install-shell.sh"),
+                self.assertEqual(zf.read(prefix + "recovery"), (ROOT / "build/recovery/recovery").read_bytes())
+                for staged, shared in (("backup-emmc.sh", "backup-emmc.sh"),
+                                       ("shell-service.sh", "install-shell.sh"),
                                        ("log-task.sh", "log-task.sh")):
                     self.assertEqual(zf.read(prefix + staged), (ROOT / "install_c2" / shared).read_bytes())
                 config = tomllib.loads(zf.read(prefix + "config.toml").decode())

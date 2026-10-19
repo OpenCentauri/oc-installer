@@ -10,8 +10,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_OUT = os.path.join(ROOT, "build", "c2-tools-bootstrap.swu")
 
 # Files from install_c2/ embedded into the bootstrap SWU payload
-PAYLOAD_GLOBS = (".sh", ".toml", ".pem", ".sha256", ".txt")
-PAYLOAD_BINS = ("recovery", "bind-shell", "pigz")
+PAYLOAD_GLOBS = (".sh", ".toml", ".pem", ".sha256", ".txt", ".crt")
+PAYLOAD_BINS = ("recovery", "bind-shell", "pigz", "curl")
+# Built or fetched by tools/*.sh, staged from build/ instead of install_c2/
+BUILD_OUTPUTS = {"pigz": "build/pigz/pigz", "curl": "build/curl/curl",
+                 "recovery": "build/recovery/recovery", "bind-shell": "build/bind-shell/bind-shell"}
 
 
 def payload_tgz():
@@ -19,10 +22,11 @@ def payload_tgz():
     src = os.path.join(ROOT, "install_c2")
     with gzip.GzipFile(fileobj=buf, mode="wb", compresslevel=9, mtime=0) as gz:
         with tarfile.open(fileobj=gz, mode="w") as tf:
-            for name in sorted(set(os.listdir(src)) | {"pigz"}):
+            for name in sorted(set(os.listdir(src)) | set(BUILD_OUTPUTS)):
                 if not (name.endswith(PAYLOAD_GLOBS) or name in PAYLOAD_BINS):
                     continue
-                path = os.path.join(ROOT, "build/pigz/pigz") if name == "pigz" else os.path.join(src, name)
+                path = os.path.join(ROOT, BUILD_OUTPUTS[name]) if name in BUILD_OUTPUTS \
+                    else os.path.join(src, name)
                 ti = tf.gettarinfo(path, arcname=name)
                 ti.mtime = 0
                 ti.uid = ti.gid = 0

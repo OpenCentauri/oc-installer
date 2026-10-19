@@ -29,13 +29,35 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
           persist-credentials: false
+          fetch-depth: 0
 
-      - name: Package installer
+      - name: Install build dependencies
         run: |
-          wget -O install_opencentauri/decrypt https://github.com/OpenCentauri/OpenCentauri/releases/download/v0.0.0/decrypt
-          wget -O install_opencentauri/wifi-network-config-tool https://github.com/OpenCentauri/OpenCentauri/releases/latest/download/wifi-network-config-tool-linux-armv7
-          wget -O install_opencentauri/utf8-fix https://github.com/OpenCentauri/OpenCentauri/releases/latest/download/utf8-fix-linux-armv7
-          python3 tools/make_cc1.py
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-linux-gnueabihf busybox shellcheck
+
+      - name: Cache pigz build
+        uses: actions/cache@v4
+        with:
+          path: build/pigz
+          key: pigz-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tools/build-pigz.sh') }}
+
+      - name: Cache curl build
+        uses: actions/cache@v4
+        with:
+          path: build/curl
+          key: curl-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tools/build-curl.sh') }}
+
+      - name: Cache fetched ARM helpers
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/recovery
+            build/bind-shell
+          key: fetch-${{ runner.os }}-${{ hashFiles('tools/fetch-binaries.sh') }}
+
+      - name: Build all installers
+        run: ./build.sh
 
       - uses: actions/upload-artifact@v4
         with:
@@ -49,30 +71,16 @@ jobs:
           path: build/oc-installer.zip
           if-no-files-found: error
 
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-arm-linux-gnueabihf busybox shellcheck
-
-      - name: Cache pigz build
-        uses: actions/cache@v4
-        with:
-          path: build/pigz
-          key: pigz-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tools/build-pigz.sh') }}
-
-      - name: Package C2/CC2 installers
-        run: ./build.sh
-
       - uses: actions/upload-artifact@v4
         with:
           name: installer-cc2
-          path: build/cc2_eeb001_installer_*.zip.sig
+          path: build/cc2_eeb001_*.zip.sig
           if-no-files-found: error
 
       - uses: actions/upload-artifact@v4
         with:
           name: installer-c2
-          path: build/c2_eeb001_installer_*.zip.sig
+          path: build/c2_eeb001_*.zip.sig
           if-no-files-found: error
 
   comment:
