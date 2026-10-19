@@ -49,6 +49,12 @@ The update opens the installer without flashing firmware. It stops the stock
 updater and clears its pending update flags. Only the COSMOS install buttons
 flash firmware. C2 and CC2 use the same COSMOS image.
 
+Recommended before a first COSMOS install (especially on C2/CC2): run
+`Utils → Backup eMMC to USB` and keep the finished backup somewhere safe.
+`Utils → Start temp root shell (port 4567)` gives you a root shell for the
+session without installing anything, which is handy for inspecting or
+recovering the stock system before you flash.
+
 The installer extracts to `/oc-installer`, not `/opt/usr`. Bootstrap, GUI and
 command output, errors and exit statuses append to `/mnt/exUDISK/OCInstaller.log`.
 Keep that USB mount writable; the installer does not fall back to internal logs.
