@@ -51,7 +51,8 @@ class BackupTest(unittest.TestCase):
             if fault in ("compress", "verify"):
                 stubs["gzip"] = '#!/bin/sh\ncase "$1" in ' + ("-1" if fault == "compress" else "-t") + ') exit 1 ;; esac\nexec /usr/bin/gzip "$@"\n'
             if fault == "writer":
-                stubs["head"] = "#!/bin/sh\nexit 1\n"
+                stubs["dd"] = ("#!/bin/sh\nfor a in \"$@\"; do case \"$a\" in of=*part-*) exit 1 ;; esac; done\n"
+                               "exec /bin/dd \"$@\"\n")
             for name, body in stubs.items():
                 path = bin_dir / name
                 path.write_text(body)

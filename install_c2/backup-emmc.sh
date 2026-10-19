@@ -86,8 +86,9 @@ write_archive() {
         part=0
         while :; do
             file=$(printf '%s/%s.bin.gz.part-%03d' "$work" "$name" "$part")
-            # head counts bytes, unlike dd count= on short pipe reads.
-            head -c "$part_size" > "$file" || return 1
+            # Stock busybox head -c over-reads pipes and drops the surplus on
+            # exit; dd with a fixed block count stops cleanly at part edges.
+            dd bs=32768 count=$((part_size / 32768)) of="$file" 2>/dev/null || return 1
             if [ ! -s "$file" ]; then
                 rm "$file"
                 break
