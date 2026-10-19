@@ -26,7 +26,7 @@ jobs:
     outputs:
       commit: ${{ steps.checkout.outputs.commit }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         id: checkout
         with:
           ref: ${{ inputs.ref }}
@@ -62,28 +62,28 @@ jobs:
         run: ./build.sh
 
       - name: Upload CC1 installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: installer-cc1
           path: build/cc1
           if-no-files-found: error
 
       - name: Upload CC1 release zip
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: oc-installer.zip
           path: build/oc-installer.zip
           if-no-files-found: error
 
       - name: Upload CC2 installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: installer-cc2
           path: build/cc2_eeb001_*.zip.sig
           if-no-files-found: error
 
       - name: Upload C2 installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: installer-c2
           path: build/c2_eeb001_*.zip.sig

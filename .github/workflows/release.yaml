@@ -43,13 +43,13 @@ jobs:
       attestations: write
     steps:
       - name: Download CC1 release zip
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: oc-installer.zip
           path: artifacts
 
       - name: Download C2/CC2 zip.sig artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: installer-c*2
           path: artifacts
