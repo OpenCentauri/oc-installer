@@ -5,6 +5,14 @@ This installer can
 - Install OpenCentauri
 - Update OpenCentauri
 - Uninstall OpenCentauri
+- Install or remove a root shell (port 4567)
+
+In `Utils`, stock CC1 can install or remove the root shell. Installation refuses
+if TCP port 4567 is already listening, reporting
+`ERROR: Root shell already installed/running` without changing anything.
+An installer-managed shell can still be removed.
+CC1 shell recovery files are stored in `/user-resource/sig-dump-emmc`.
+After a stock OTA, restore with `sh /user-resource/sig-dump-emmc/reinstall.sh`.
 
 ## Usage
 1. [Download](https://github.com/OpenCentauri/oc-installer/releases/latest/download/oc-installer.zip) the latest release

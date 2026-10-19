@@ -34,13 +34,14 @@ def exercise(shell):
         # Redirect every write outside the payload before executing anything.
         for name in SCRIPTS:
             text = (SOURCE / name).read_text()
-            for prefix in ("/opt/usr", "/opt/bin", "/etc", "/app", "/mnt", "/proc/cmdline",
+            for prefix in ("/opt/usr", "/opt/bin", "/user-resource", "/etc", "/app", "/mnt", "/proc/net", "/proc/cmdline",
                            "/proc/sys/vm/drop_caches"):
                 text = text.replace(prefix, str(root) + prefix)
             put(payload / name, text)
         put(payload / "config.toml", (SOURCE / "config.toml").read_text())
         put(payload / "swupdate_public_cosmos.pem", "mock key\n")
         put(root / "proc/cmdline", "console=ttyS0 root=/dev/mmcblk0p7 rootwait\n")
+        put(root / "proc/net/tcp", "")
         put(root / "proc/sys/vm/drop_caches", "")
         (root / "etc/init.d").mkdir(parents=True)
         (root / "etc/rc.d").mkdir()
@@ -157,6 +158,20 @@ def exercise(shell):
         put(root / "etc/hotplug.d/block/12-shell", "legacy")
         put(root / "app/bind-shell", "legacy")
         put(root / "etc/rc.local", "keep\n# BEGIN oc-installer bind-shell\nlegacy\n# END oc-installer bind-shell\nexit 0\n")
+        for table, address in (("tcp", "00000000"), ("tcp6", "0" * 32)):
+            put(root / "proc/net" / table, f"0: {address}:11D7 00000000:0000 0A\n")
+            output = run("install-shell.sh", code=1)
+            assert "Root shell already installed/running" in output
+            assert not init.exists() and not save.exists()
+            assert (root / "etc/hotplug.d/block/12-shell").read_text() == "legacy"
+            assert (root / "app/bind-shell").read_text() == "legacy"
+            put(root / "proc/net" / table, "")
+        (root / "proc/net/tcp").unlink()
+        (root / "proc/net/tcp6").unlink()
+        assert "cannot check root shell port" in run("install-shell.sh", code=1)
+        assert (root / "etc/hotplug.d/block/12-shell").read_text() == "legacy"
+        # An established connection is not a listener on this port.
+        put(root / "proc/net/tcp", "0: 00000000:11D7 00000000:0000 01\n")
         env["FAIL_COPY"] = "1"
         run("install-shell.sh", code=23)
         assert not init.exists()
@@ -184,10 +199,22 @@ def exercise(shell):
         run("install-shell.sh", code=1)
         assert init.exists()
         env["FAIL_STOP"] = "0"
+        put(root / "proc/net/tcp", "0: 00000000:11D7 00000000:0000 0A\n")
         run("install-shell.sh")
         assert not init.exists() and not save.exists() and not (root / "running").exists()
+        put(root / "proc/net/tcp", "")
         assert not (root / "opt/bin/bind-shell").exists()
         assert not any((root / "etc/rc.d").iterdir())
+
+        # CC1 uses the same service with its own OTA-persistent storage.
+        cc1_save = root / "user-resource/sig-dump-emmc"
+        run("install-shell.sh", str(cc1_save))
+        assert init.exists() and (cc1_save / "reinstall.sh").is_file()
+        assert (root / "running").exists()
+        run("install-shell.sh", str(cc1_save))
+        assert not init.exists() and not cc1_save.exists()
+        run("install-shell.sh", "/unsupported", code=1)
+        assert not init.exists()
 
         # Reload is user-initiated after completion, not a timer that hides output.
         put(payload / "recovery", '''#!/bin/sh

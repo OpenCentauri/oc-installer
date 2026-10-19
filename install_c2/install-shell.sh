@@ -3,7 +3,21 @@ set -e
 exec 2>&1
 export PATH="$PATH:/sbin:/usr/sbin"
 init=/etc/init.d/oc-shell
-save=/opt/usr/sig-dump-emmc
+save=${1:-/opt/usr/sig-dump-emmc}
+case "$save" in
+    /opt/usr/sig-dump-emmc|/user-resource/sig-dump-emmc) ;;
+    *) echo "ERROR: unsupported root shell location"; exit 1 ;;
+esac
+
+if [ ! -f "$init" ]; then
+    # 11D7 is port 4567; 0A is TCP_LISTEN. Check IPv4 and IPv6 tables.
+    listening=$(awk '$2 ~ /:11D7$/ && $4 == "0A" { busy=1 } END { print busy+0 }' /proc/net/tcp*) || {
+        echo "ERROR: cannot check root shell port"; exit 1
+    }
+    if [ "$listening" -ne 0 ]; then
+        echo "ERROR: Root shell already installed/running"; exit 1
+    fi
+fi
 
 # Remove the old autostart paths so they cannot resurrect a disabled shell.
 rm -f /etc/hotplug.d/block/12-shell /app/bind-shell
@@ -52,7 +66,7 @@ cat > "$save/reinstall.sh" <<'EOF'
 #!/bin/sh
 set -e
 export PATH="$PATH:/sbin:/usr/sbin"
-cd /opt/usr/sig-dump-emmc
+cd "$(dirname "$0")"
 mkdir -p /opt/bin
 cp bind-shell /opt/bin/bind-shell
 cp oc-shell /etc/init.d/oc-shell
