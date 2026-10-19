@@ -3,9 +3,9 @@ set -e
 exec 2>&1
 export PATH="$PATH:/sbin:/usr/sbin"
 init=/etc/init.d/oc-shell
-save=${1:-/opt/usr/sig-dump-emmc}
+save=${1:-/opt/usr/oc-root-shell}
 case "$save" in
-    /opt/usr/sig-dump-emmc|/user-resource/sig-dump-emmc) ;;
+    /opt/usr/oc-root-shell|/user-resource/oc-root-shell) ;;
     *) echo "ERROR: unsupported root shell location"; exit 1 ;;
 esac
 

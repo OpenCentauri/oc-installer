@@ -109,7 +109,7 @@ exit "$GUI_RC"
                 self.assertEqual(init.exists(), not installed)
                 self.assertFalse((self.payload / ".recovery.pid").exists())
                 self.assertFalse((self.payload / ".reload").exists())
-        self.assertIn(str(self.root / "user-resource/sig-dump-emmc"),
+        self.assertIn(str(self.root / "user-resource/oc-root-shell"),
                       (self.root / "service-calls").read_text())
 
 

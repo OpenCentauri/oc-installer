@@ -154,7 +154,7 @@ def exercise(shell):
 
         # Native rc.common dispatch, immediate start, OTA restore, removal, failures.
         init = root / "etc/init.d/oc-shell"
-        save = root / "opt/usr/sig-dump-emmc"
+        save = root / "opt/usr/oc-root-shell"
         put(root / "etc/hotplug.d/block/12-shell", "legacy")
         put(root / "app/bind-shell", "legacy")
         put(root / "etc/rc.local", "keep\n# BEGIN oc-installer bind-shell\nlegacy\n# END oc-installer bind-shell\nexit 0\n")
@@ -186,6 +186,7 @@ def exercise(shell):
         run("install-shell.sh")
         assert (root / "running").exists()
         assert init.read_text().startswith(f"#!/bin/sh {root}/etc/rc.common\n")
+        assert not (root / "opt/usr/sig-dump-emmc").exists()
         for link in ("S98oc-shell", "K98oc-shell"):
             assert (root / "etc/rc.d" / link).resolve() == init
         for path in (init, save / "reinstall.sh"):
@@ -207,9 +208,10 @@ def exercise(shell):
         assert not any((root / "etc/rc.d").iterdir())
 
         # CC1 uses the same service with its own OTA-persistent storage.
-        cc1_save = root / "user-resource/sig-dump-emmc"
+        cc1_save = root / "user-resource/oc-root-shell"
         run("install-shell.sh", str(cc1_save))
         assert init.exists() and (cc1_save / "reinstall.sh").is_file()
+        assert not (root / "user-resource/sig-dump-emmc").exists()
         assert (root / "running").exists()
         run("install-shell.sh", str(cc1_save))
         assert not init.exists() and not cc1_save.exists()

@@ -11,8 +11,8 @@ In `Utils`, stock CC1 can install or remove the root shell. Installation refuses
 if TCP port 4567 is already listening, reporting
 `ERROR: Root shell already installed/running` without changing anything.
 An installer-managed shell can still be removed.
-CC1 shell recovery files are stored in `/user-resource/sig-dump-emmc`.
-After a stock OTA, restore with `sh /user-resource/sig-dump-emmc/reinstall.sh`.
+CC1 shell recovery files are stored in `/user-resource/oc-root-shell`.
+After a stock OTA, restore with `sh /user-resource/oc-root-shell/reinstall.sh`.
 
 ## Usage
 1. [Download](https://github.com/OpenCentauri/oc-installer/releases/latest/download/oc-installer.zip) the latest release
@@ -50,8 +50,8 @@ For an offline install, put `cosmos-centauri-carbon-2.swu` on the drive as
 Installing starts the shell immediately and at boot. Connect with
 `nc <printer-ip> 4567`. There is no authentication; use a trusted network and
 remove the shell when finished. `Reload menu` updates the install/remove label.
-After a stock OTA wipe, reinstall with
-`sh /opt/usr/sig-dump-emmc/reinstall.sh`.
+Shell recovery files are stored in `/opt/usr/oc-root-shell`.
+After a stock OTA wipe, reinstall with `sh /opt/usr/oc-root-shell/reinstall.sh`.
 
 ### eMMC backup
 
