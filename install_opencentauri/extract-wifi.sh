@@ -31,6 +31,7 @@ mkdir -p "$(dirname "$wpa_conf")"
 
 cat > "$wpa_conf" <<EOF
 ctrl_interface=/var/run/wpa_supplicant
+update_config=1
 network={
     ssid="$ssid"
     psk="$psk"
